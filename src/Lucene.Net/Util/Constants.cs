@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if NETFRAMEWORK
-using Microsoft.Win32;
-#endif
 using System.Text.RegularExpressions;
 
 namespace Lucene.Net.Util
@@ -50,10 +47,6 @@ namespace Lucene.Net.Util
                                                                     //public static readonly string JVM_NAME = GetEnvironmentVariable("java.vm.name", "");
 
         /// <summary>
-        /// The value of <see cref="RuntimeInformation.OSDescription"/>, excluding the version number.</summary>
-        public static readonly string OS_NAME = VERSION.Replace(RuntimeInformation.OSDescription, string.Empty).Trim();
-
-        /// <summary>
         /// True iff running on Linux. </summary>
         public static readonly bool LINUX = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
@@ -74,35 +67,17 @@ namespace Lucene.Net.Util
         /// True iff running on FreeBSD </summary>
         public static readonly bool FREE_BSD = RuntimeInformation.IsOSPlatform(OSPlatform.Create("FreeBSD"));
 
-        // Possible Values: X86, X64, Arm, Arm64
-        public static readonly string OS_ARCH = RuntimeInformation.OSArchitecture.ToString();
-
-
-        public static readonly string OS_VERSION = ExtractString(RuntimeInformation.OSDescription, VERSION);
-
-#if NETFRAMEWORK
-        /// <summary>
-        /// The value of the currently installed .NET Framework version on Windows or <see cref="Environment.Version"/> on other operating systems.
-        /// <para/>
-        /// NOTE: This was JAVA_VERSION in Lucene
-        /// </summary>
-#else
         /// <summary>
         /// The value of the version parsed from <see cref="RuntimeInformation.FrameworkDescription"/>.
         /// <para/>
         /// NOTE: This was JAVA_VERSION in Lucene
         /// </summary>
-#endif
         public static readonly string RUNTIME_VERSION = LoadRuntimeVersion();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static string LoadRuntimeVersion() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
         {
-#if NETFRAMEWORK
-            return WINDOWS ? GetFramework45PlusFromRegistry() : Environment.Version.ToString();
-#else
             return ExtractString(RuntimeInformation.FrameworkDescription, VERSION);
-#endif
         }
 
         // LUCENENET: Removed JRE fields
@@ -170,64 +145,6 @@ namespace Lucene.Net.Util
         }
 
         private static readonly Regex MAIN_VERSION_WITHOUT_ALPHA_BETA = new Regex("\\.", RegexOptions.Compiled);
-
-#if NETFRAMEWORK
-        // Gets the .NET Framework Version (if at least 4.5)
-        // Reference: https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed
-        private static string GetFramework45PlusFromRegistry()
-        {
-            const string subkey = @"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\";
-
-            // As an alternative, if you know the computers you will query are running .NET Framework 4.5 
-            // or later, you can use:
-            using RegistryKey ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey(subkey);
-            object releaseValue;
-            if (ndpKey != null && (releaseValue = ndpKey.GetValue("Release")) != null)
-            {
-                return CheckFor45PlusVersion((int)releaseValue);
-            }
-            else
-            {
-                // Fall back to Environment.Version (probably wrong, but this is our best guess if the registry check fails)
-                return Environment.Version.ToString();
-                //Console.WriteLine(".NET Framework Version 4.5 or later is not detected.");
-            }
-        }
-
-        // Checking the version using >= will enable forward compatibility.
-        private static string CheckFor45PlusVersion(int releaseKey)
-        {
-            if (releaseKey >= 460799)
-                return "4.8";
-            if (releaseKey >= 460798)
-                return "4.7";
-            if (releaseKey >= 394802)
-                return "4.6.2";
-            if (releaseKey >= 394254)
-            {
-                return "4.6.1";
-            }
-            if (releaseKey >= 393295)
-            {
-                return "4.6";
-            }
-            if ((releaseKey >= 379893))
-            {
-                return "4.5.2";
-            }
-            if ((releaseKey >= 378675))
-            {
-                return "4.5.1";
-            }
-            if ((releaseKey >= 378389))
-            {
-                return "4.5";
-            }
-            // This code should never execute. A non-null release key should mean
-            // that 4.5 or later is installed.
-            return "No 4.5 or later version detected";
-        }
-#endif
 
         /// <summary>
         /// Extracts the first group matched with the regex as a new string.

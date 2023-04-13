@@ -5295,9 +5295,6 @@ namespace Lucene.Net.Index
             {
                 ["source"] = source,
                 ["lucene.version"] = Constants.LUCENE_VERSION,
-                ["os"] = Constants.OS_NAME,
-                ["os.arch"] = Constants.OS_ARCH,
-                ["os.version"] = Constants.OS_VERSION,
                 ["java.version"] = Constants.RUNTIME_VERSION,
                 ["java.vendor"] = Constants.RUNTIME_VENDOR,
                 ["timestamp"] = Convert.ToString((DateTime.Now))
